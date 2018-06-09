@@ -19,18 +19,25 @@
 ### Note that this needs the "bind-client" package installed.
 ###
 ### Tested on a WNDR3700v2 under CeroWrt Vancouver 3.10.18-1
+###
+### I could not get this script to work so i decided to update it and added
+### the following:
+###
+### 1. Added autodetect of the WAN interface
+### 2. Used built in logging facility in OpenWRT
+###
+### This has been tested on a TP-Link Archer 7 v4 OpenWRT SNAPSHOT r6953-aa30eb5
+###
 
-exec >>/tmp/foo.log 2>&1
-
-## The name of the "WAN" interface
-wan=eth0.2
+## Autodetect the name of the "WAN" interface (usually only one)
+wan=$(uci -P /var/state get network.wan.ifname)
 
 ## Tag and facility under which messages are logged
 facility=daemon
 tag="30-nsupdate[$$]"
 
 ## Authoritative name server to update
-nameserver=mail.2web.se
+nameserver=ns1.2web.se
 
 ## Zone to update
 zonename=orbitxp.com
@@ -41,38 +48,29 @@ hostname=f16.${zonename}
 ## Desired TTL (time-to-live), in seconds
 ttl=300
 
-## Key file
-key=/root/K${zonename}.key
+## TSIG key
+keyName=dyndns
+keyString=<obfuscated>
 
-[ "$INTERFACE" != "${wan}" ] && exit 0
+logger -t ${tag} -p ${facility}.info "Testing if hotplugged DEVICE is WAN interface"
+[ "$DEVICE" != "${wan}" ] && exit 0
+
+logger -t ${tag} -p ${facility}.info "Testing if INTERFACE is up and we have anything to update"
 [ "$ACTION" != "ifup" ] && [ "$ACTION" != "update" ] && exit 0
-
-## This doesn't seem very necessary, because we run an NTP client.
-## But maybe it is useful when booting the router after some time.
-## NTP may take a while to converge.
-##
-rdate -s time.nist.gov
 
 ## ## scan_interfaces puts a bunch of information in CONFIG_ variables.
 ## ## But on my router, it fails to get the IP address of the WAN interface
 ## ## (ge00).  Maybe this is because it isn't configured, but assigned
 ## ## via DHCP? Anyway, we have to use a fallback method to get the address.
-## ##
-## include /lib/network
-## scan_interfaces
-## config_get ipaddr ${wan} ipaddr
-## if [ -z "${ipaddr}" ]
-## then
-##   : logger -t ${tag} -p ${facility}.warn "config_get did not find ipaddr, trying ip -4 addr show"
-  ipaddr=`ip -4 addr show dev ${wan} | grep inet | sed -e 's/.*inet \([.0-9]*\).*/\1/'`
-## fi
+ipaddr=$(ip -4 addr show dev ${wan} | grep inet | sed -e 's/.*inet \([.0-9]*\).*/\1/')
 
 ## Now we construct a DNS UPDATE packet and send it to the
 ## authoritative server.  We need to provide key material to authenticate.
 ##
 echo "server $nameserver
 zone ${zonename}
+key ${keyName} ${keyString}
 update delete ${hostname}. IN A
 update add ${hostname}. ${ttl} IN A $ipaddr
-send" | nsupdate -k ${key} -v || logger -t ${tag} -p ${facility}.error "Update $hostname IN A $ipaddr failed"
+send" | nsupdate || logger -t ${tag} -p ${facility}.error "Update $hostname IN A $ipaddr failed"
 logger -t ${tag} -p ${facility}.info "Updated $hostname IN A $ipaddr"
