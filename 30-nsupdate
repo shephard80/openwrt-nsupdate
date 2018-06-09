@@ -23,23 +23,23 @@
 exec >>/tmp/foo.log 2>&1
 
 ## The name of the "WAN" interface
-wan=ge00
+wan=eth0.2
 
 ## Tag and facility under which messages are logged
 facility=daemon
 tag="30-nsupdate[$$]"
 
 ## Authoritative name server to update
-nameserver=AUTH.NAMESERVER.EXAMPLE
+nameserver=mail.2web.se
 
 ## Zone to update
-zonename=MYZONE.EXAMPLE
+zonename=orbitxp.com
 
 ## Hostname to update
-hostname=ROUTER.${zonename}
+hostname=f16.${zonename}
 
 ## Desired TTL (time-to-live), in seconds
-ttl=600
+ttl=300
 
 ## Key file
 key=/root/K${zonename}.key
