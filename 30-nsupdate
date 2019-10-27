@@ -29,6 +29,13 @@
 ### This has been tested on a TP-Link Archer 7 v4 OpenWRT SNAPSHOT r6953-aa30eb5
 ###
 
+### Operations
+### To get TSIG key from PowerDNS run the following command
+### pdnssec list-tsig-keys | grep "dyndns" | cut -d " " -f 3
+###
+### Newer versions of PowerDNS should run the following instead
+### pdnsutil list-tsig-keys | grep "dyndns" | cut -d " " -f 3
+
 ## Autodetect the name of the "WAN" interface (usually only one)
 wan=$(uci -P /var/state get network.wan.ifname)
 
