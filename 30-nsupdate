@@ -31,10 +31,16 @@
 
 ### Operations
 ### To get TSIG key from PowerDNS run the following command
-### pdnssec list-tsig-keys | grep "dyndns" | cut -d " " -f 3
+### pdnssec list-tsig-keys | grep "openwrt" | cut -d " " -f 3
 ###
 ### Newer versions of PowerDNS should run the following instead
-### pdnsutil list-tsig-keys | grep "dyndns" | cut -d " " -f 3
+### pdnsutil list-tsig-keys | grep "openwrt" | cut -d " " -f 3
+###
+### The following OpenWRT packages must be installed:
+### ddns-scripts_nsupdate
+### 
+### Configuration options for PowerDNS can be found here
+### https://doc.powerdns.com/authoritative/dnsupdate.html
 
 ## Autodetect the name of the "WAN" interface (usually only one)
 wan=$(uci -P /var/state get network.wan.ifname)
@@ -56,7 +62,7 @@ hostname=f16.${zonename}
 ttl=300
 
 ## TSIG key
-keyName=dyndns
+keyName=openwrt
 keyString=<obfuscated>
 
 logger -t ${tag} -p ${facility}.info "Testing if hotplugged DEVICE is WAN interface"
