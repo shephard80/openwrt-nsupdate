@@ -38,6 +38,11 @@
 ###
 ### The following OpenWRT packages must be installed:
 ### ddns-scripts_nsupdate
+## Try to install package
+if [ $(opkg info ddns-scripts_nsupdate | awk '$1 == "Status:" {print $4}') == "not-installed" ] 
+then
+  opkg install ddns-scripts_nsupdate
+fi
 ### 
 ### Configuration options for PowerDNS can be found here
 ### https://doc.powerdns.com/authoritative/dnsupdate.html
